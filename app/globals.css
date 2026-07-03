@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
+@theme {
+  /* Surfaces */
+  --color-canvas: #F7F6F3;
+  --color-raised: #FFFFFF;
+  --color-sunken: #EFEDE8;
+  --color-inverse: #14121F;
+
+  /* Ink (text colors) */
+  --color-ink: #14121F;
+  --color-ink-secondary: #5B5868;
+  --color-ink-tertiary: #9C99A8;
+  --color-ink-inverse: #F1EFEA;
+
+  /* Accent — reserved for primary actions + key data points ONLY */
+  --color-accent: #6155E8;
+  --color-accent-hover: #5147D1;
+  --color-accent-subtle: #EDEBFC;
+
+  /* Semantic */
+  --color-success: #1E9E6B;
+  --color-warning: #C77D12;
+  --color-danger: #D1453B;
+
+  /* Data-viz palette */
+  --color-chart-1: #6155E8;
+  --color-chart-2: #A8A0F5;
+  --color-chart-3: #2FB5A0;
+  --color-chart-4: #E8A94F;
+  --color-chart-5: #3D3A4D;
+
+  /* Fonts */
+  --font-ui: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-numeric: 'Inter', 'Helvetica Now', system-ui, sans-serif;
+
+  /* Type scale (1.25 ratio) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+  --text-display: 2.375rem;
+
+  /* Line heights for custom sizes */
+  --text-display--line-height: 1.1;
+  --text-2xl--line-height: 1.2;
+  --text-xl--line-height: 1.3;
+  --text-lg--line-height: 1.4;
+
+  /* Radii — smaller than the common 16-24px bubbly default */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  /* Shadows — hairline border first, shadow subtle */
+  --shadow-raised: 0 1px 2px rgba(20, 18, 31, 0.04), 0 1px 1px rgba(20, 18, 31, 0.03);
+  --shadow-modal: 0 8px 30px rgba(20, 18, 31, 0.12), 0 2px 8px rgba(20, 18, 31, 0.06);
+}
+
+/* Non-Tailwind custom properties */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --border-hairline: 1px solid rgba(20, 18, 31, 0.08);
+  --sidebar-width: 240px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ---- Base ---- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tabular nums for any data / KPI values */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-numeric);
+}
+
+/* ---- Skeleton loading animation ---- */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.skeleton {
+  background: var(--color-sunken);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+/* ---- Card ---- */
+.card {
+  background: var(--color-raised);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(20, 18, 31, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 18, 31, 0.25);
+}
+
+/* ---- Focus ring ---- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ---- Transition defaults ---- */
+button, a, input, select, textarea {
+  transition: all 0.15s ease;
+}
+
+/* ---- Table ---- */
+.data-table tbody tr:nth-child(even) {
+  background: var(--color-sunken);
 }
