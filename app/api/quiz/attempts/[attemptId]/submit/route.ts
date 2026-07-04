@@ -3,12 +3,23 @@ import { connectDB } from '@/app/lib/db';
 import { QuizAttempt } from '@/app/lib/models/QuizAttempt';
 import { QuizAnswer } from '@/app/lib/models/QuizAnswer';
 import { Question } from '@/app/lib/models/Question';
+import { Profile } from '@/app/lib/models/Profile';
 import mongoose from 'mongoose';
 
 interface SubmitAnswer {
   questionId: string;
   answerText?: string;
   optionIds?: string[];
+}
+
+interface ShopifyProfilePayload {
+  id?: number | string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
+  orders_count?: number;
+  total_spent?: number;
 }
 
 export async function POST(
@@ -19,9 +30,10 @@ export async function POST(
     await connectDB();
     const { attemptId } = await params;
     const body = await request.json();
-    const { idempotencyKey, answers } = body as {
+    const { idempotencyKey, answers, profile } = body as {
       idempotencyKey: string;
       answers: SubmitAnswer[];
+      profile?: ShopifyProfilePayload;
     };
 
     if (!idempotencyKey || !Array.isArray(answers)) {
@@ -77,6 +89,28 @@ export async function POST(
       }
     }
 
+    let profileDoc = null;
+    let email = null;
+    if (profile && profile.email) {
+      email = profile.email.toLowerCase().trim();
+      profileDoc = await Profile.findOneAndUpdate(
+        { email },
+        {
+          $set: {
+            email,
+            shopifyCustomerId: profile.id?.toString() || attempt.shopifyCustomerId || null,
+            firstName: profile.first_name || null,
+            lastName: profile.last_name || null,
+            name: profile.name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || null,
+            ordersCount: typeof profile.orders_count === 'number' ? profile.orders_count : 0,
+            totalSpent: typeof profile.total_spent === 'number' ? profile.total_spent : 0,
+            lastActiveAt: new Date(),
+          },
+        },
+        { upsert: true, new: true }
+      );
+    }
+
     // Write all answers in a transaction (or sequentially for MongoDB without replica set)
     const session = await mongoose.startSession();
     try {
@@ -92,16 +126,19 @@ export async function POST(
         await QuizAnswer.insertMany(answerDocs, { session });
 
         // Mark attempt as completed
-        await QuizAttempt.findByIdAndUpdate(
-          attemptId,
-          {
-            isCompleted: true,
-            completedAt: new Date(),
-            idempotencyKey,
-            currentQuestionIndex: questions.length - 1,
-          },
-          { session }
-        );
+        const updateData: Record<string, unknown> = {
+          isCompleted: true,
+          completedAt: new Date(),
+          idempotencyKey,
+          currentQuestionIndex: questions.length - 1,
+        };
+        if (profileDoc) {
+          updateData.profileId = profileDoc._id;
+          updateData.email = email;
+          updateData.isAnonymous = false;
+          if (profile?.id) updateData.shopifyCustomerId = profile.id.toString();
+        }
+        await QuizAttempt.findByIdAndUpdate(attemptId, updateData, { session });
       });
     } finally {
       await session.endSession();

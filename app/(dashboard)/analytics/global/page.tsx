@@ -18,6 +18,10 @@ interface GlobalData {
   totalCompleted: number;
   completionRate: number;
   activeQuizzes: number;
+  anonymousAttempts: number;
+  loggedInAttempts: number;
+  anonymousCompleted: number;
+  loggedInCompleted: number;
   avgCompletionTime: string;
   mostPopularQuiz: { name: string; attempts: number } | null;
   attemptsOverTime: { label: string; value: number }[];
@@ -33,6 +37,9 @@ export default function GlobalAnalyticsPage() {
       try {
         const res = await fetch('/api/admin/analytics/global');
         if (res.ok) setData(await res.json());
+        else console.error('Failed to load global analytics:', res.status);
+      } catch (error) {
+        console.error('Failed to load global analytics:', error);
       } finally {
         setLoading(false);
       }
@@ -41,13 +48,12 @@ export default function GlobalAnalyticsPage() {
   }, []);
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-ink">Global Analytics</h1>
-        <p className="mt-1 text-sm text-ink-secondary">Cross-quiz performance overview</p>
-      </div>
+    <div className="animate-fade-in">
+      <h1 className="mb-6 text-xl font-semibold tracking-tight text-ink">
+        Global Analytics
+      </h1>
 
-      {/* KPI Row */}
+      {/* Primary KPIs */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {loading ? (
           <>
@@ -68,7 +74,7 @@ export default function GlobalAnalyticsPage() {
 
       {/* Secondary KPIs */}
       {!loading && data && (
-        <div className="mb-8 grid grid-cols-2 gap-4">
+        <div className="mb-4 grid grid-cols-2 gap-4">
           <KpiCard
             label="Median Completion Time"
             value={data.avgCompletionTime}
@@ -83,6 +89,43 @@ export default function GlobalAnalyticsPage() {
               </span>
             )}
           </KpiCard>
+        </div>
+      )}
+
+      {/* Cohort Breakdown: Anonymous vs Logged-In */}
+      {!loading && data && (
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="card p-5 border border-border bg-gradient-to-br from-white to-surface-hover/30">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">Logged-In Users</span>
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                {data.totalAttempts > 0 ? `${Math.round((data.loggedInAttempts / data.totalAttempts) * 100)}% of total` : '0%'}
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-ink">{data.loggedInAttempts.toLocaleString()}</span>
+              <span className="text-xs text-ink-secondary">attempts</span>
+            </div>
+            <div className="mt-2 text-xs text-ink-secondary">
+              <span className="font-semibold text-emerald-600">{data.loggedInCompleted.toLocaleString()}</span> completed ({data.loggedInAttempts > 0 ? `${Math.round((data.loggedInCompleted / data.loggedInAttempts) * 100)}%` : '0%'} rate)
+            </div>
+          </div>
+
+          <div className="card p-5 border border-border bg-gradient-to-br from-white to-surface-hover/30">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">Anonymous Takers</span>
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                {data.totalAttempts > 0 ? `${Math.round((data.anonymousAttempts / data.totalAttempts) * 100)}% of total` : '0%'}
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-ink">{data.anonymousAttempts.toLocaleString()}</span>
+              <span className="text-xs text-ink-secondary">attempts</span>
+            </div>
+            <div className="mt-2 text-xs text-ink-secondary">
+              <span className="font-semibold text-amber-600">{data.anonymousCompleted.toLocaleString()}</span> completed ({data.anonymousAttempts > 0 ? `${Math.round((data.anonymousCompleted / data.anonymousAttempts) * 100)}%` : '0%'} rate)
+            </div>
+          </div>
         </div>
       )}
 

@@ -54,12 +54,24 @@ export async function GET(
     }
 
     // KPIs
-    const [totalAttempts, completedAttempts, completedAttemptsData] = await Promise.all([
+    const [
+      totalAttempts,
+      completedAttempts,
+      completedAttemptsData,
+      anonymousAttempts,
+      loggedInAttempts,
+      anonymousCompleted,
+      loggedInCompleted,
+    ] = await Promise.all([
       QuizAttempt.countDocuments(attemptFilter),
       QuizAttempt.countDocuments({ ...attemptFilter, isCompleted: true }),
       QuizAttempt.find({ ...attemptFilter, isCompleted: true })
         .select('startedAt completedAt')
         .lean(),
+      QuizAttempt.countDocuments({ ...attemptFilter, isAnonymous: true }),
+      QuizAttempt.countDocuments({ ...attemptFilter, isAnonymous: false }),
+      QuizAttempt.countDocuments({ ...attemptFilter, isAnonymous: true, isCompleted: true }),
+      QuizAttempt.countDocuments({ ...attemptFilter, isAnonymous: false, isCompleted: true }),
     ]);
 
     const completionRate = totalAttempts > 0 ? ((completedAttempts / totalAttempts) * 100).toFixed(1) : '0';
@@ -175,6 +187,10 @@ export async function GET(
       totalAttempts,
       completedAttempts,
       completionRate: parseFloat(completionRate),
+      anonymousAttempts,
+      loggedInAttempts,
+      anonymousCompleted,
+      loggedInCompleted,
       avgCompletionTime: formatTime(avgTime),
       medianCompletionTime: formatTime(medianTime),
       funnelSteps,

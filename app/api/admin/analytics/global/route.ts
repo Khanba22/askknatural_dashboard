@@ -12,6 +12,10 @@ export async function GET() {
       totalCompleted,
       activeQuizzes,
       allAttempts,
+      anonymousAttempts,
+      loggedInAttempts,
+      anonymousCompleted,
+      loggedInCompleted,
     ] = await Promise.all([
       QuizAttempt.countDocuments(),
       QuizAttempt.countDocuments({ isCompleted: true }),
@@ -19,6 +23,10 @@ export async function GET() {
       QuizAttempt.find({ isCompleted: true })
         .select('startedAt completedAt quizId')
         .lean(),
+      QuizAttempt.countDocuments({ isAnonymous: true }),
+      QuizAttempt.countDocuments({ isAnonymous: false }),
+      QuizAttempt.countDocuments({ isAnonymous: true, isCompleted: true }),
+      QuizAttempt.countDocuments({ isAnonymous: false, isCompleted: true }),
     ]);
 
     const completionRate = totalAttempts > 0 ? ((totalCompleted / totalAttempts) * 100).toFixed(1) : '0';
@@ -120,6 +128,10 @@ export async function GET() {
       totalCompleted,
       completionRate: parseFloat(completionRate),
       activeQuizzes,
+      anonymousAttempts,
+      loggedInAttempts,
+      anonymousCompleted,
+      loggedInCompleted,
       avgCompletionTime: avgTimeFormatted,
       medianCompletionTimeMs: medianTime,
       mostPopularQuiz,

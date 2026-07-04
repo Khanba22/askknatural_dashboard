@@ -32,6 +32,10 @@ interface QuizAnalytics {
   totalAttempts: number;
   completedAttempts: number;
   completionRate: number;
+  anonymousAttempts: number;
+  loggedInAttempts: number;
+  anonymousCompleted: number;
+  loggedInCompleted: number;
   avgCompletionTime: string;
   medianCompletionTime: string;
   funnelSteps: { label: string; value: number }[];
@@ -153,6 +157,43 @@ export default function QuizAnalyticsPage() {
           </>
         ) : null}
       </div>
+
+      {/* Cohort Breakdown: Anonymous vs Logged-In */}
+      {!loading && data && (
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="card p-5 border border-border bg-gradient-to-br from-white to-surface-hover/30">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">Logged-In Users</span>
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                {data.totalAttempts > 0 ? `${Math.round((data.loggedInAttempts / data.totalAttempts) * 100)}% of total` : '0%'}
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-ink">{data.loggedInAttempts.toLocaleString()}</span>
+              <span className="text-xs text-ink-secondary">attempts</span>
+            </div>
+            <div className="mt-2 text-xs text-ink-secondary">
+              <span className="font-semibold text-emerald-600">{data.loggedInCompleted.toLocaleString()}</span> completed ({data.loggedInAttempts > 0 ? `${Math.round((data.loggedInCompleted / data.loggedInAttempts) * 100)}%` : '0%'} rate)
+            </div>
+          </div>
+
+          <div className="card p-5 border border-border bg-gradient-to-br from-white to-surface-hover/30">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-secondary">Anonymous Takers</span>
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                {data.totalAttempts > 0 ? `${Math.round((data.anonymousAttempts / data.totalAttempts) * 100)}% of total` : '0%'}
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-ink">{data.anonymousAttempts.toLocaleString()}</span>
+              <span className="text-xs text-ink-secondary">attempts</span>
+            </div>
+            <div className="mt-2 text-xs text-ink-secondary">
+              <span className="font-semibold text-amber-600">{data.anonymousCompleted.toLocaleString()}</span> completed ({data.anonymousAttempts > 0 ? `${Math.round((data.anonymousCompleted / data.anonymousAttempts) * 100)}%` : '0%'} rate)
+            </div>
+          </div>
+        </div>
+      )}
 
       {!loading && data && (
         <>
