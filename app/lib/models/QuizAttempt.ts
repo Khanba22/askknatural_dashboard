@@ -29,7 +29,7 @@ const QuizAttemptSchema = new Schema<IQuizAttempt>(
     completedAt: { type: Date, default: null },
     isCompleted: { type: Boolean, default: false },
     sourceUrl: { type: String, default: null },
-    idempotencyKey: { type: String, default: null, sparse: true, unique: true },
+    idempotencyKey: { type: String, sparse: true, unique: true },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
